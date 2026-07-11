@@ -55,7 +55,21 @@ module.exports = async (req, res) => {
       ], true);
 
       const parsed = safeJson(content);
-      res.status(200).json(normalize(parsed));
+      const result = normalize(parsed);
+
+      // 사주 입력값 + 결과를 Supabase에 저장 (실패해도 응답은 정상 반환)
+      await saveToSupabase({
+        birth_date: body.birthDate || null,
+        birth_time: body.birthTime || null,
+        calendar: body.calendar || null,
+        gender: body.gender || null,
+        saju: result.saju,
+        advice: result.advice,
+        numbers: result.numbers,
+        bonus: result.bonus
+      });
+
+      res.status(200).json(result);
     } else {
       const history = Array.isArray(body.messages) ? body.messages.slice(-12) : [];
       const content = await callOpenAI(apiKey, model, [
@@ -88,6 +102,34 @@ async function callOpenAI(apiKey, model, messages, jsonMode) {
   }
   const j = await r.json();
   return (j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content) || '';
+}
+
+// Supabase REST(PostgREST)로 한 행 저장. SDK 없이 fetch만 사용.
+// 환경변수 미설정이거나 오류여도 사용자 응답은 막지 않는다(best-effort).
+async function saveToSupabase(row) {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) return; // 미설정 시 조용히 skip
+
+  const table = process.env.SUPABASE_TABLE || 'saju_logs';
+  try {
+    const r = await fetch(`${url}/rest/v1/${table}`, {
+      method: 'POST',
+      headers: {
+        'apikey': key,
+        'Authorization': `Bearer ${key}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify(row)
+    });
+    if (!r.ok) {
+      const t = await r.text();
+      console.error('Supabase insert 실패:', r.status, t.slice(0, 300));
+    }
+  } catch (e) {
+    console.error('Supabase insert 오류:', e.message);
+  }
 }
 
 function safeJson(text) {

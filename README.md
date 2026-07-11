@@ -17,8 +17,23 @@
    |------|------|------|
    | `OPENAI_API_KEY` | ✅ | OpenAI API 키 |
    | `OPENAI_MODEL` | 선택 | 사용할 모델 (기본값 `gpt-5.4-mini`) |
+   | `SUPABASE_URL` | 선택 | Supabase 프로젝트 URL (데이터 저장 시) |
+   | `SUPABASE_SERVICE_ROLE_KEY` | 선택 | Supabase service_role 키 (서버 전용 비밀 키) |
+   | `SUPABASE_TABLE` | 선택 | 저장 테이블명 (기본값 `saju_logs`) |
 
 3. 배포하면 `https://<프로젝트>.vercel.app` 에서 동작합니다.
+
+## 데이터 저장 (Supabase)
+
+사주 추천 시 입력값(생년월일·태어난 시간·성별)과 결과(사주 풀이·추천 번호)가
+`api/saju.js` 서버 함수에서 Supabase 테이블 `saju_logs` 에 저장됩니다.
+
+1. Supabase 프로젝트를 만들고 `supabase_schema.sql` 을 SQL Editor 에서 실행해 테이블을 생성합니다.
+2. **Project Settings → API** 에서 `Project URL` 과 `service_role` 키를 복사합니다.
+3. 위 표의 `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` 환경변수에 등록합니다.
+
+> `service_role` 키는 RLS 를 우회하는 관리자 키입니다. **서버 환경변수에만** 두고 절대 브라우저/깃에 노출하지 마세요.
+> 환경변수가 없으면 저장만 건너뛰고 추천 기능은 정상 동작합니다.
 
 > 모델명을 바꾸려면 `OPENAI_MODEL` 환경변수만 수정하면 됩니다. 지정한 모델명이 유효하지 않으면 OpenAI가 오류를 반환하니, 계정에서 사용 가능한 모델명인지 확인하세요.
 
