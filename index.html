@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>로또 추첨기</title>
+<title>사주 로또 추첨기</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -20,6 +20,7 @@
     --neutral-warm: #f2f0eb;
     --ceramic: #edebe9;
     --white: #ffffff;
+    --input-border: #d6dbde;
     --text-black: rgba(0, 0, 0, 0.87);
     --text-black-soft: rgba(0, 0, 0, 0.58);
     --text-white: #ffffff;
@@ -39,227 +40,227 @@
     color: var(--text-black);
     min-height: 100vh;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
     padding: 2.4rem 1.6rem;
+  }
+
+  .stack {
+    width: 100%;
+    max-width: 480px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
   }
 
   .card {
     background: var(--white);
     border-radius: var(--card-radius);
     box-shadow: var(--card-shadow);
-    max-width: 480px;
-    width: 100%;
     overflow: hidden;
   }
 
-  /* House-green feature band */
   .band {
     background: var(--house-green);
-    padding: 32px 32px 28px;
+    padding: 28px 32px 24px;
     text-align: center;
   }
-  .band h1 {
-    color: var(--text-white);
-    font-size: 26px;
-    font-weight: 600;
-    line-height: 1.2;
-  }
-  .band p {
-    color: var(--text-white-soft);
-    font-size: 15px;
-    font-weight: 400;
-    margin-top: 6px;
-  }
+  .band h1 { color: var(--text-white); font-size: 24px; font-weight: 600; line-height: 1.2; }
+  .band h2 { color: var(--text-white); font-size: 19px; font-weight: 600; line-height: 1.2; }
+  .band p { color: var(--text-white-soft); font-size: 15px; font-weight: 400; margin-top: 6px; }
 
-  /* Ball machine — the drum */
-  .machine-wrap {
-    background: var(--house-green);
-    padding: 0 32px 28px;
-    display: flex;
-    justify-content: center;
-  }
+  /* ---- Ball machine ---- */
+  .machine-wrap { background: var(--house-green); padding: 0 32px 24px; display: flex; justify-content: center; }
   .drum {
-    position: relative;
-    width: 220px;
-    height: 220px;
-    border-radius: 50%;
+    position: relative; width: 200px; height: 200px; border-radius: 50%;
     background: radial-gradient(circle at 50% 40%, rgba(255,255,255,0.10), rgba(0,0,0,0.25));
     border: 6px solid rgba(255,255,255,0.14);
-    box-shadow: inset 0 0 24px rgba(0,0,0,0.45);
-    overflow: hidden;
+    box-shadow: inset 0 0 24px rgba(0,0,0,0.45); overflow: hidden;
   }
   .drum.spinning { animation: shake 0.5s ease-in-out infinite; }
-  @keyframes shake {
-    0%, 100% { transform: rotate(-1.5deg); }
-    50% { transform: rotate(1.5deg); }
-  }
-  /* mini balls bouncing inside */
+  @keyframes shake { 0%,100% { transform: rotate(-1.5deg); } 50% { transform: rotate(1.5deg); } }
   .mini {
-    position: absolute;
-    width: 26px;
-    height: 26px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    font-weight: 700;
-    color: #fff;
-    left: 50%;
-    top: 50%;
+    position: absolute; width: 24px; height: 24px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; color: #fff; left: 50%; top: 50%;
+    margin-left: -12px; margin-top: -12px;
   }
   .drum.spinning .mini { animation: bounce var(--dur) ease-in-out infinite alternate; }
-  @keyframes bounce {
-    from { transform: translate(var(--x1), var(--y1)); }
-    to   { transform: translate(var(--x2), var(--y2)); }
-  }
-  .chute {
-    position: absolute;
-    bottom: -3px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 40px;
-    height: 14px;
-    background: rgba(0,0,0,0.35);
-    border-radius: 0 0 8px 8px;
-  }
+  @keyframes bounce { from { transform: translate(var(--x1), var(--y1)); } to { transform: translate(var(--x2), var(--y2)); } }
+  .chute { position: absolute; bottom: -3px; left: 50%; transform: translateX(-50%); width: 40px; height: 14px; background: rgba(0,0,0,0.35); border-radius: 0 0 8px 8px; }
 
   .body { padding: 24px 32px 28px; text-align: center; }
+  .result-label { font-size: 13px; font-weight: 600; color: var(--text-black-soft); letter-spacing: 0.5px; margin-bottom: 12px; min-height: 16px; }
 
-  .result-label {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text-black-soft);
-    letter-spacing: 0.5px;
-    margin-bottom: 12px;
-    min-height: 16px;
-  }
-
-  .balls {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    justify-content: center;
-    align-items: center;
-    min-height: 78px;
-    margin-bottom: 24px;
-  }
+  .balls { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: center; min-height: 78px; margin-bottom: 24px; }
   .placeholder { font-size: 15px; color: var(--text-black-soft); }
 
   .ball {
-    width: 52px;
-    height: 52px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 21px;
-    font-weight: 700;
-    color: var(--text-white);
+    width: 52px; height: 52px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 21px; font-weight: 700; color: var(--text-white);
     box-shadow: 0 0 6px rgba(0,0,0,0.14), 0 4px 8px rgba(0,0,0,0.10);
   }
   .ball.drop { animation: drop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
   @keyframes drop {
-    0%   { transform: translateY(-40px) scale(0.4); opacity: 0; }
-    60%  { transform: translateY(6px) scale(1.08); opacity: 1; }
+    0% { transform: translateY(-40px) scale(0.4); opacity: 0; }
+    60% { transform: translateY(6px) scale(1.08); opacity: 1; }
     100% { transform: translateY(0) scale(1); opacity: 1; }
   }
   .ball.rolling { background: var(--green-uplift) !important; }
-
   .plus { font-size: 22px; font-weight: 600; color: var(--text-black-soft); }
   .bonus-wrap { display: flex; flex-direction: column; align-items: center; gap: 6px; }
   .bonus-label { font-size: 12px; font-weight: 600; color: var(--gold); letter-spacing: 0.5px; }
   .ball.bonus.pop { animation: bonusPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
-  @keyframes bonusPop {
-    0%   { transform: scale(0) rotate(-180deg); opacity: 0; }
-    100% { transform: scale(1) rotate(0); opacity: 1; }
-  }
+  @keyframes bonusPop { 0% { transform: scale(0) rotate(-180deg); opacity: 0; } 100% { transform: scale(1) rotate(0); opacity: 1; } }
 
-  button.draw {
-    font-family: var(--font);
-    background: var(--green-accent);
-    color: var(--white);
-    border: 1px solid var(--green-accent);
-    border-radius: var(--btn-radius);
-    padding: 14px 40px;
-    font-size: 16px;
-    font-weight: 600;
-    letter-spacing: -0.01em;
-    cursor: pointer;
-    transition: all 0.2s ease;
+  button.pill {
+    font-family: var(--font); background: var(--green-accent); color: var(--white);
+    border: 1px solid var(--green-accent); border-radius: var(--btn-radius);
+    padding: 14px 40px; font-size: 16px; font-weight: 600; letter-spacing: -0.01em;
+    cursor: pointer; transition: all 0.2s ease;
   }
-  button.draw:active { transform: scale(0.95); }
-  button.draw:disabled { opacity: 0.5; cursor: not-allowed; }
+  button.pill:active { transform: scale(0.95); }
+  button.pill:disabled { opacity: 0.5; cursor: not-allowed; }
 
-  .footer {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 16px;
-    margin-top: 18px;
-    font-size: 13px;
-    color: var(--text-black-soft);
-  }
-  .sound-toggle {
-    background: none;
-    border: none;
-    font-family: var(--font);
-    font-size: 13px;
-    color: var(--text-black-soft);
-    cursor: pointer;
-    padding: 4px;
-  }
+  .footer { display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 18px; font-size: 13px; color: var(--text-black-soft); }
+  .sound-toggle { background: none; border: none; font-family: var(--font); font-size: 13px; color: var(--text-black-soft); cursor: pointer; padding: 4px; }
   .sound-toggle:hover { color: var(--green-accent); }
 
-  /* Confetti */
-  .confetti {
-    position: fixed;
-    width: 9px;
-    height: 14px;
-    top: -20px;
-    pointer-events: none;
-    z-index: 50;
-    animation: fall linear forwards;
+  /* ---- Saju form ---- */
+  .form { padding: 24px 32px 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .field { display: flex; flex-direction: column; gap: 6px; text-align: left; }
+  .field.full { grid-column: 1 / -1; }
+  .field label { font-size: 13px; font-weight: 600; color: var(--text-black); }
+  .field input, .field select {
+    font-family: var(--font); font-size: 15px; color: var(--text-black);
+    background: var(--white); border: 1px solid var(--input-border);
+    border-radius: 4px; padding: 11px 12px; width: 100%;
   }
-  @keyframes fall {
-    to { transform: translateY(105vh) rotate(720deg); opacity: 0; }
+  .field input:focus, .field select:focus { outline: none; border-color: var(--green-accent); }
+  .form-actions { padding: 16px 32px 24px; text-align: center; }
+
+  /* ---- Chat ---- */
+  .chat { padding: 8px 20px 20px; }
+  .chat-log { display: flex; flex-direction: column; gap: 10px; max-height: 320px; overflow-y: auto; padding: 8px 4px; }
+  .bubble { max-width: 82%; padding: 11px 14px; border-radius: 14px; font-size: 14px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
+  .bubble.bot { align-self: flex-start; background: var(--green-light); color: var(--text-black); border-bottom-left-radius: 4px; }
+  .bubble.user { align-self: flex-end; background: var(--green-accent); color: var(--white); border-bottom-right-radius: 4px; }
+  .bubble.loading { color: var(--text-black-soft); font-style: italic; }
+  .bubble .advice { display: block; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(0,0,0,0.10); color: var(--starbucks-green); font-weight: 600; }
+  .chat-input { display: flex; gap: 8px; padding: 12px 20px 20px; }
+  .chat-input input {
+    flex: 1; font-family: var(--font); font-size: 14px; color: var(--text-black);
+    border: 1px solid var(--input-border); border-radius: 50px; padding: 11px 16px;
   }
+  .chat-input input:focus { outline: none; border-color: var(--green-accent); }
+  .chat-input button {
+    font-family: var(--font); background: var(--green-accent); color: #fff; border: none;
+    border-radius: 50px; padding: 0 20px; font-size: 14px; font-weight: 600; cursor: pointer;
+  }
+  .chat-input button:disabled { opacity: 0.5; cursor: not-allowed; }
+  .disclaimer { font-size: 12px; color: var(--text-black-soft); text-align: center; padding: 0 20px 20px; line-height: 1.5; }
+
+  .confetti { position: fixed; width: 9px; height: 14px; top: -20px; pointer-events: none; z-index: 50; animation: fall linear forwards; }
+  @keyframes fall { to { transform: translateY(105vh) rotate(720deg); opacity: 0; } }
 </style>
 </head>
 <body>
-  <div class="card">
-    <div class="band">
-      <h1>로또 추첨기</h1>
-      <p>1 – 45 중 6개 + 보너스 볼</p>
+  <div class="stack">
+
+    <!-- 사주 챗봇 카드 -->
+    <div class="card">
+      <div class="band">
+        <h1>사주 로또 추천</h1>
+        <p>생년월일과 태어난 시간으로 오늘의 번호를 뽑아요</p>
+      </div>
+
+      <div class="form">
+        <div class="field full">
+          <label for="birthDate">생년월일</label>
+          <input type="date" id="birthDate" min="1920-01-01" max="2025-12-31">
+        </div>
+        <div class="field">
+          <label for="calendar">양력 / 음력</label>
+          <select id="calendar">
+            <option value="양력">양력</option>
+            <option value="음력">음력</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="gender">성별</label>
+          <select id="gender">
+            <option value="">선택 안 함</option>
+            <option value="남성">남성</option>
+            <option value="여성">여성</option>
+          </select>
+        </div>
+        <div class="field full">
+          <label for="birthTime">태어난 시간 (십이지시)</label>
+          <select id="birthTime">
+            <option value="모름">모름 / 시간 미상</option>
+            <option value="자시 (23:30~01:30)">자시 (23:30~01:30)</option>
+            <option value="축시 (01:30~03:30)">축시 (01:30~03:30)</option>
+            <option value="인시 (03:30~05:30)">인시 (03:30~05:30)</option>
+            <option value="묘시 (05:30~07:30)">묘시 (05:30~07:30)</option>
+            <option value="진시 (07:30~09:30)">진시 (07:30~09:30)</option>
+            <option value="사시 (09:30~11:30)">사시 (09:30~11:30)</option>
+            <option value="오시 (11:30~13:30)">오시 (11:30~13:30)</option>
+            <option value="미시 (13:30~15:30)">미시 (13:30~15:30)</option>
+            <option value="신시 (15:30~17:30)">신시 (15:30~17:30)</option>
+            <option value="유시 (17:30~19:30)">유시 (17:30~19:30)</option>
+            <option value="술시 (19:30~21:30)">술시 (19:30~21:30)</option>
+            <option value="해시 (21:30~23:30)">해시 (21:30~23:30)</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="pill" id="sajuBtn" onclick="sajuRecommend()">사주 분석하고 번호 추천받기</button>
+      </div>
+
+      <div class="chat">
+        <div class="chat-log" id="chatLog">
+          <div class="bubble bot">안녕하세요! 생년월일과 태어난 시간을 입력하고 버튼을 누르면 사주를 풀이해 오늘의 로또 번호를 추천해 드려요. 궁금한 점은 아래에 자유롭게 물어보셔도 좋아요. 🍀</div>
+        </div>
+      </div>
+      <div class="chat-input">
+        <input type="text" id="chatText" placeholder="예: 올해 재물운은 어때요?" onkeydown="if(event.key==='Enter')sendChat()">
+        <button id="chatBtn" onclick="sendChat()">보내기</button>
+      </div>
+      <p class="disclaimer">사주 풀이와 번호 추천은 재미를 위한 것이며, 당첨을 보장하지 않습니다.</p>
     </div>
 
-    <div class="machine-wrap">
-      <div class="drum" id="drum">
-        <div class="chute"></div>
+    <!-- 볼 머신 카드 -->
+    <div class="card">
+      <div class="band">
+        <h2>추첨 결과</h2>
+        <p>1 – 45 중 6개 + 보너스 볼</p>
+      </div>
+      <div class="machine-wrap">
+        <div class="drum" id="drum"><div class="chute"></div></div>
+      </div>
+      <div class="body">
+        <div class="result-label" id="resultLabel"></div>
+        <div class="balls" id="balls">
+          <span class="placeholder">사주 추천 또는 랜덤 추첨을 시작하세요</span>
+        </div>
+        <button class="pill" id="drawBtn" onclick="startDraw()">랜덤 추첨</button>
+        <div class="footer">
+          <span id="drawCount">추첨 0회</span>
+          <button class="sound-toggle" id="soundToggle" onclick="toggleSound()">🔊 소리 켬</button>
+        </div>
       </div>
     </div>
 
-    <div class="body">
-      <div class="result-label" id="resultLabel"></div>
-      <div class="balls" id="balls">
-        <span class="placeholder">레버를 당겨 추첨을 시작하세요</span>
-      </div>
-      <button class="draw" id="drawBtn" onclick="startDraw()">추첨 시작</button>
-      <div class="footer">
-        <span id="drawCount">추첨 0회</span>
-        <button class="sound-toggle" id="soundToggle" onclick="toggleSound()">🔊 소리 켬</button>
-      </div>
-    </div>
   </div>
 
 <script>
-  const REVEAL_GAP = 900;      // 공 하나당 간격(ms)
+  const REVEAL_GAP = 900;
   let drawCount = 0;
   let soundOn = true;
   let drawing = false;
+  const chatHistory = [];
 
-  // ---- 색상: 4단계 그린 체계 매핑 (보너스는 골드) ----
   function colorFor(n) {
     if (n <= 9)  return '#2b5148';
     if (n <= 18) return '#1E3932';
@@ -268,7 +269,7 @@
     return '#33795b';
   }
 
-  // ---- Web Audio 사운드 (외부 파일 없이 즉석 합성) ----
+  // ---- Web Audio ----
   let audioCtx = null;
   function ac() {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -279,25 +280,18 @@
     const ctx = ac();
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
-    osc.type = type;
-    osc.frequency.value = freq;
+    osc.type = type; osc.frequency.value = freq;
     gain.gain.setValueAtTime(vol, ctx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + dur);
     osc.connect(gain); gain.connect(ctx.destination);
     osc.start(); osc.stop(ctx.currentTime + dur);
   }
-  function spinSound() {
-    // 낮게 굴러가는 느낌 — 짧은 노이즈 반복
-    if (!soundOn) return;
-    beep(140 + Math.random() * 80, 0.06, 'triangle', 0.06);
-  }
+  function spinSound() { if (soundOn) beep(140 + Math.random() * 80, 0.06, 'triangle', 0.06); }
   function fanfare() {
     if (!soundOn) return;
-    [523, 659, 784, 1047].forEach((f, i) =>
-      setTimeout(() => beep(f, 0.22, 'sine', 0.16), i * 90));
+    [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => beep(f, 0.22, 'sine', 0.16), i * 90));
   }
 
-  // ---- 드럼 안 미니볼 세팅 ----
   function fillDrum() {
     const drum = document.getElementById('drum');
     drum.querySelectorAll('.mini').forEach(m => m.remove());
@@ -307,65 +301,65 @@
       m.className = 'mini';
       m.textContent = n;
       m.style.background = colorFor(n);
-      const r = () => (Math.random() * 150 - 75).toFixed(0) + 'px';
+      const r = () => (Math.random() * 140 - 70).toFixed(0) + 'px';
       m.style.setProperty('--x1', r()); m.style.setProperty('--y1', r());
       m.style.setProperty('--x2', r()); m.style.setProperty('--y2', r());
       m.style.setProperty('--dur', (0.4 + Math.random() * 0.5).toFixed(2) + 's');
-      m.style.marginLeft = '-13px'; m.style.marginTop = '-13px';
       drum.appendChild(m);
     }
   }
 
-  // ---- 메인 추첨 ----
-  function startDraw() {
-    if (drawing) return;
-    drawing = true;
-    ac().resume && ac().resume();
+  function setBusy(b) {
+    drawing = b;
+    document.getElementById('drawBtn').disabled = b;
+    document.getElementById('sajuBtn').disabled = b;
+  }
 
-    const btn = document.getElementById('drawBtn');
+  // 미리 정해진 번호로 볼 머신을 돌린다 (랜덤/사주 공용)
+  function runMachine(picked, bonus, label) {
+    if (drawing) return;
+    ac().resume && ac().resume();
+    setBusy(true);
+
     const container = document.getElementById('balls');
-    const label = document.getElementById('resultLabel');
+    const resultLabel = document.getElementById('resultLabel');
+    const drawBtn = document.getElementById('drawBtn');
     const drum = document.getElementById('drum');
 
-    btn.disabled = true;
-    btn.textContent = '추첨 중…';
+    drawBtn.textContent = '추첨 중…';
     container.innerHTML = '';
-    label.textContent = '';
+    resultLabel.textContent = '';
 
-    // 번호 추출 (중복 없이 7개)
+    fillDrum();
+    drum.classList.add('spinning');
+    const spinTimer = setInterval(spinSound, 120);
+
+    setTimeout(() => {
+      resultLabel.textContent = label || '추첨 번호';
+      revealSequence(picked, bonus, () => {
+        clearInterval(spinTimer);
+        drum.classList.remove('spinning');
+        drum.querySelectorAll('.mini').forEach(m => m.remove());
+        drawBtn.textContent = '랜덤 추첨';
+        drawCount++;
+        document.getElementById('drawCount').textContent = '추첨 ' + drawCount + '회';
+        setBusy(false);
+      });
+    }, 1400);
+  }
+
+  function startDraw() {
     const pool = Array.from({ length: 45 }, (_, i) => i + 1);
     for (let i = pool.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [pool[i], pool[j]] = [pool[j], pool[i]];
     }
-    const picked = pool.slice(0, 6).sort((a, b) => a - b);
-    const bonus = pool[6];
-
-    // 드럼 스핀 시작
-    fillDrum();
-    drum.classList.add('spinning');
-    const spinTimer = setInterval(spinSound, 120);
-
-    // 잠깐 돌린 뒤 하나씩 배출
-    setTimeout(() => {
-      label.textContent = '당첨 번호';
-      revealSequence(picked, bonus, () => {
-        clearInterval(spinTimer);
-        drum.classList.remove('spinning');
-        drum.querySelectorAll('.mini').forEach(m => m.remove());
-        btn.disabled = false;
-        btn.textContent = '다시 추첨';
-        drawCount++;
-        document.getElementById('drawCount').textContent = '추첨 ' + drawCount + '회';
-        drawing = false;
-      });
-    }, 1400);
+    runMachine(pool.slice(0, 6).sort((a, b) => a - b), pool[6], '랜덤 추첨 번호');
   }
 
   function revealSequence(picked, bonus, done) {
     const container = document.getElementById('balls');
     let idx = 0;
-
     function next() {
       if (idx < picked.length) {
         const n = picked[idx];
@@ -374,7 +368,6 @@
         ball.textContent = '?';
         container.appendChild(ball);
 
-        // 숫자 롤링 연출 (긴장감)
         let ticks = 0;
         const roll = setInterval(() => {
           ball.textContent = Math.floor(Math.random() * 45) + 1;
@@ -386,14 +379,13 @@
             ball.classList.remove('rolling');
             ball.classList.add('drop');
             ball.style.background = colorFor(n);
-            beep(440 + n * 6, 0.14, 'sine', 0.18); // 확정음
+            beep(440 + n * 6, 0.14, 'sine', 0.18);
           }
         }, 55);
 
         idx++;
         setTimeout(next, REVEAL_GAP);
       } else {
-        // 보너스 볼
         setTimeout(() => {
           const plus = document.createElement('span');
           plus.className = 'plus';
@@ -412,7 +404,8 @@
           wrap.appendChild(ball); wrap.appendChild(lbl);
           container.appendChild(wrap);
 
-          document.getElementById('resultLabel').textContent = '당첨 번호 + 보너스';
+          document.getElementById('resultLabel').textContent =
+            (document.getElementById('resultLabel').textContent || '추첨 번호') + ' + 보너스';
           fanfare();
           confetti();
           done();
@@ -422,7 +415,6 @@
     next();
   }
 
-  // ---- 컨페티 ----
   function confetti() {
     const colors = ['#00754A', '#006241', '#cba258', '#dfc49d', '#1E3932'];
     for (let i = 0; i < 80; i++) {
@@ -438,11 +430,97 @@
     }
   }
 
-  // ---- 사운드 토글 ----
   function toggleSound() {
     soundOn = !soundOn;
     document.getElementById('soundToggle').textContent = soundOn ? '🔊 소리 켬' : '🔇 소리 끔';
     if (soundOn) beep(660, 0.1);
+  }
+
+  // ---- 채팅 UI helpers ----
+  function addBubble(text, who) {
+    const log = document.getElementById('chatLog');
+    const b = document.createElement('div');
+    b.className = 'bubble ' + who;
+    b.textContent = text;
+    log.appendChild(b);
+    log.scrollTop = log.scrollHeight;
+    return b;
+  }
+
+  // ---- 사주 분석 + 번호 추천 ----
+  async function sajuRecommend() {
+    if (drawing) return;
+    const birthDate = document.getElementById('birthDate').value;
+    if (!birthDate) { alert('생년월일을 입력해 주세요.'); return; }
+    const calendar = document.getElementById('calendar').value;
+    const birthTime = document.getElementById('birthTime').value;
+    const gender = document.getElementById('gender').value;
+
+    addBubble(`${birthDate} (${calendar}) · ${birthTime}${gender ? ' · ' + gender : ''}\n사주 봐주세요!`, 'user');
+    const loading = addBubble('사주를 풀이하는 중이에요…', 'bot loading');
+    document.getElementById('sajuBtn').disabled = true;
+
+    try {
+      const res = await fetch('/api/saju', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode: 'analyze', birthDate, calendar, birthTime, gender })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || '요청 실패');
+
+      loading.classList.remove('loading');
+      loading.textContent = data.saju;
+      if (data.advice) {
+        const adv = document.createElement('span');
+        adv.className = 'advice';
+        adv.textContent = '💡 ' + data.advice;
+        loading.appendChild(adv);
+      }
+      const numText = data.numbers.join(', ') + '  +  보너스 ' + data.bonus;
+      addBubble('추천 번호는 ' + numText + ' 이에요. 볼 머신으로 뽑아볼게요! 🎱', 'bot');
+
+      chatHistory.push({ role: 'user', content: `생년월일 ${birthDate}(${calendar}), ${birthTime}, ${gender}. 사주와 로또 번호 추천해줘.` });
+      chatHistory.push({ role: 'assistant', content: `${data.saju} 추천 번호: ${numText}` });
+
+      runMachine(data.numbers, data.bonus, '사주 추천 번호');
+    } catch (e) {
+      loading.classList.remove('loading');
+      loading.textContent = '⚠️ ' + e.message;
+      document.getElementById('sajuBtn').disabled = false;
+    }
+  }
+
+  // ---- 자유 대화 ----
+  async function sendChat() {
+    const input = document.getElementById('chatText');
+    const text = input.value.trim();
+    if (!text) return;
+    const btn = document.getElementById('chatBtn');
+
+    addBubble(text, 'user');
+    input.value = '';
+    chatHistory.push({ role: 'user', content: text });
+    const loading = addBubble('생각하는 중…', 'bot loading');
+    btn.disabled = true;
+
+    try {
+      const res = await fetch('/api/saju', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode: 'chat', messages: chatHistory.slice(-12) })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || '요청 실패');
+      loading.classList.remove('loading');
+      loading.textContent = data.reply;
+      chatHistory.push({ role: 'assistant', content: data.reply });
+    } catch (e) {
+      loading.classList.remove('loading');
+      loading.textContent = '⚠️ ' + e.message;
+    } finally {
+      btn.disabled = false;
+    }
   }
 </script>
 </body>
