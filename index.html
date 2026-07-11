@@ -147,7 +147,10 @@
     border-radius: 4px; padding: 11px 12px; width: 100%;
   }
   .field input:focus, .field select:focus { outline: none; border-color: var(--green-accent); }
-  .form-actions { padding: 16px 32px 24px; text-align: center; }
+  .consent { display: flex; align-items: flex-start; gap: 8px; padding: 16px 32px 0; text-align: left; }
+  .consent input { width: 18px; height: 18px; margin-top: 1px; accent-color: var(--green-accent); flex-shrink: 0; cursor: pointer; }
+  .consent label { font-size: 13px; color: var(--text-black-soft); line-height: 1.5; cursor: pointer; }
+  .form-actions { padding: 14px 32px 24px; text-align: center; }
 
   /* ---- Chat ---- */
   .chat { padding: 8px 20px 20px; }
@@ -222,6 +225,10 @@
             <option value="해시 (21:30~23:30)">해시 (21:30~23:30)</option>
           </select>
         </div>
+      </div>
+      <div class="consent">
+        <input type="checkbox" id="consent">
+        <label for="consent">입력한 생년월일·태어난 시간·성별과 사주 풀이·추천 번호를 서비스 개선을 위해 저장하는 데 동의합니다. (선택)</label>
       </div>
       <div class="form-actions">
         <button class="pill" id="sajuBtn" onclick="sajuRecommend()">사주 분석하고 번호 추천받기</button>
@@ -464,6 +471,7 @@
     const calendar = document.getElementById('calendar').value;
     const birthTime = document.getElementById('birthTime').value;
     const gender = document.getElementById('gender').value;
+    const consent = document.getElementById('consent').checked;
 
     addBubble(`${birthDate} (${calendar}) · ${birthTime}${gender ? ' · ' + gender : ''}\n사주 봐주세요!`, 'user');
     const loading = addBubble('사주를 풀이하는 중이에요…', 'bot loading');
@@ -473,7 +481,7 @@
       const res = await fetch('/api/saju', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mode: 'analyze', birthDate, calendar, birthTime, gender })
+        body: JSON.stringify({ mode: 'analyze', birthDate, calendar, birthTime, gender, consent })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || '요청 실패');
@@ -517,7 +525,7 @@
       const res = await fetch('/api/saju', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mode: 'chat', messages: chatHistory.slice(-12) })
+        body: JSON.stringify({ mode: 'chat', messages: chatHistory.slice(-12), consent: document.getElementById('consent').checked })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || '요청 실패');

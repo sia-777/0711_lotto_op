@@ -57,17 +57,19 @@ module.exports = async (req, res) => {
       const parsed = safeJson(content);
       const result = normalize(parsed);
 
-      // 사주 입력값 + 결과를 Supabase에 저장 (실패해도 응답은 정상 반환)
-      await saveToSupabase({
-        birth_date: body.birthDate || null,
-        birth_time: body.birthTime || null,
-        calendar: body.calendar || null,
-        gender: body.gender || null,
-        saju: result.saju,
-        advice: result.advice,
-        numbers: result.numbers,
-        bonus: result.bonus
-      });
+      // 사용자가 동의한 경우에만 Supabase에 저장 (실패해도 응답은 정상 반환)
+      if (body.consent) {
+        await insertRow(process.env.SUPABASE_TABLE || 'saju_logs', {
+          birth_date: body.birthDate || null,
+          birth_time: body.birthTime || null,
+          calendar: body.calendar || null,
+          gender: body.gender || null,
+          saju: result.saju,
+          advice: result.advice,
+          numbers: result.numbers,
+          bonus: result.bonus
+        });
+      }
 
       res.status(200).json(result);
     } else {
@@ -76,6 +78,16 @@ module.exports = async (req, res) => {
         { role: 'system', content: SYSTEM_CHAT },
         ...history
       ], false);
+
+      // 동의한 경우에만 대화(질문/답변)를 저장
+      if (body.consent) {
+        const lastUser = [...history].reverse().find(m => m && m.role === 'user');
+        await insertRow(process.env.SUPABASE_CHAT_TABLE || 'chat_logs', {
+          question: lastUser ? String(lastUser.content).slice(0, 2000) : null,
+          answer: String(content).slice(0, 4000)
+        });
+      }
+
       res.status(200).json({ reply: content });
     }
   } catch (e) {
@@ -106,12 +118,11 @@ async function callOpenAI(apiKey, model, messages, jsonMode) {
 
 // Supabase REST(PostgREST)로 한 행 저장. SDK 없이 fetch만 사용.
 // 환경변수 미설정이거나 오류여도 사용자 응답은 막지 않는다(best-effort).
-async function saveToSupabase(row) {
+async function insertRow(table, row) {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) return; // 미설정 시 조용히 skip
 
-  const table = process.env.SUPABASE_TABLE || 'saju_logs';
   try {
     const r = await fetch(`${url}/rest/v1/${table}`, {
       method: 'POST',

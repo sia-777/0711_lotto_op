@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>사주 로또 · 관리자</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green-accent: #00754A;
+    --house-green: #1E3932;
+    --green-light: #d4e9e2;
+    --gold: #cba258;
+    --neutral-warm: #f2f0eb;
+    --white: #ffffff;
+    --input-border: #d6dbde;
+    --hairline: #e7e7e7;
+    --text-black: rgba(0, 0, 0, 0.87);
+    --text-black-soft: rgba(0, 0, 0, 0.58);
+    --text-white: #ffffff;
+    --text-white-soft: rgba(255, 255, 255, 0.70);
+    --card-shadow: 0 0 0.5px rgba(0,0,0,0.14), 0 1px 1px rgba(0,0,0,0.24);
+    --font: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: var(--font); letter-spacing: -0.16px;
+    background: var(--neutral-warm); color: var(--text-black);
+    min-height: 100vh; padding: 2.4rem 1.6rem;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; }
+  .band {
+    background: var(--house-green); border-radius: 12px 12px 0 0;
+    padding: 24px 28px; box-shadow: var(--card-shadow);
+  }
+  .band h1 { color: var(--text-white); font-size: 22px; font-weight: 600; }
+  .band p { color: var(--text-white-soft); font-size: 14px; margin-top: 4px; }
+
+  .toolbar {
+    background: var(--white); padding: 16px 20px;
+    display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+    box-shadow: var(--card-shadow);
+  }
+  .toolbar input {
+    font-family: var(--font); font-size: 14px; color: var(--text-black);
+    border: 1px solid var(--input-border); border-radius: 50px;
+    padding: 10px 16px; min-width: 220px; flex: 1;
+  }
+  .toolbar input:focus { outline: none; border-color: var(--green-accent); }
+  .seg { display: flex; border: 1px solid var(--input-border); border-radius: 50px; overflow: hidden; }
+  .seg button {
+    font-family: var(--font); font-size: 14px; font-weight: 600;
+    background: var(--white); color: var(--text-black-soft);
+    border: none; padding: 9px 18px; cursor: pointer;
+  }
+  .seg button.active { background: var(--green-accent); color: #fff; }
+  .btn {
+    font-family: var(--font); font-size: 14px; font-weight: 600;
+    background: var(--green-accent); color: #fff; border: none;
+    border-radius: 50px; padding: 10px 22px; cursor: pointer;
+    transition: transform 0.15s;
+  }
+  .btn:active { transform: scale(0.95); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .panel {
+    background: var(--white); border-radius: 0 0 12px 12px;
+    padding: 8px 4px 4px; box-shadow: var(--card-shadow);
+    overflow-x: auto; min-height: 120px;
+  }
+  .status { padding: 24px 20px; color: var(--text-black-soft); font-size: 14px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--hairline); vertical-align: top; }
+  th { color: var(--text-black-soft); font-weight: 600; white-space: nowrap; position: sticky; top: 0; background: var(--white); }
+  td.nums { white-space: nowrap; }
+  .pill {
+    display: inline-block; min-width: 24px; text-align: center;
+    background: var(--green-light); color: var(--house-green);
+    border-radius: 50px; padding: 2px 8px; margin: 1px; font-weight: 600; font-size: 12px;
+  }
+  .pill.bonus { background: #f6ecd6; color: #8a6a1f; }
+  .muted { color: var(--text-black-soft); }
+  .count { font-size: 13px; color: var(--text-black-soft); margin-left: auto; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="band">
+      <h1>사주 로또 · 관리자</h1>
+      <p>저장된 사주 추천 / 대화 기록을 조회합니다</p>
+    </div>
+
+    <div class="toolbar">
+      <input type="password" id="token" placeholder="관리자 토큰 (ADMIN_TOKEN)" onkeydown="if(event.key==='Enter')load()">
+      <div class="seg">
+        <button id="tabSaju" class="active" onclick="setType('saju')">사주 기록</button>
+        <button id="tabChat" onclick="setType('chat')">대화 기록</button>
+      </div>
+      <button class="btn" id="loadBtn" onclick="load()">불러오기</button>
+      <span class="count" id="count"></span>
+    </div>
+
+    <div class="panel">
+      <div class="status" id="status">관리자 토큰을 입력하고 불러오기를 누르세요.</div>
+      <table id="table" style="display:none;"><thead id="thead"></thead><tbody id="tbody"></tbody></table>
+    </div>
+  </div>
+
+<script>
+  let type = 'saju';
+
+  function setType(t) {
+    type = t;
+    document.getElementById('tabSaju').classList.toggle('active', t === 'saju');
+    document.getElementById('tabChat').classList.toggle('active', t === 'chat');
+    if (document.getElementById('token').value.trim()) load();
+  }
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"]/g, c =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  }
+  function fmtDate(s) {
+    if (!s) return '';
+    try { return new Date(s).toLocaleString('ko-KR'); } catch { return esc(s); }
+  }
+
+  async function load() {
+    const token = document.getElementById('token').value.trim();
+    const status = document.getElementById('status');
+    const table = document.getElementById('table');
+    const btn = document.getElementById('loadBtn');
+    if (!token) { status.style.display = ''; table.style.display = 'none'; status.textContent = '관리자 토큰을 입력하세요.'; return; }
+
+    btn.disabled = true;
+    status.style.display = ''; table.style.display = 'none';
+    status.textContent = '불러오는 중…';
+    document.getElementById('count').textContent = '';
+
+    try {
+      const res = await fetch('/api/logs?type=' + type, { headers: { 'x-admin-token': token } });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || '요청 실패');
+      render(data.rows || []);
+    } catch (e) {
+      status.style.display = ''; table.style.display = 'none';
+      status.textContent = '⚠️ ' + e.message;
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  function render(rows) {
+    const status = document.getElementById('status');
+    const table = document.getElementById('table');
+    const thead = document.getElementById('thead');
+    const tbody = document.getElementById('tbody');
+    document.getElementById('count').textContent = rows.length + '건';
+
+    if (!rows.length) {
+      status.style.display = ''; table.style.display = 'none';
+      status.textContent = '저장된 기록이 없습니다.';
+      return;
+    }
+
+    let head, body;
+    if (type === 'saju') {
+      head = ['시각', '생년월일', '시간', '양력/음력', '성별', '추천 번호', '사주 풀이'];
+      body = rows.map(r => {
+        const nums = (r.numbers || []).map(n => `<span class="pill">${esc(n)}</span>`).join('') +
+          (r.bonus != null ? `<span class="pill bonus">${esc(r.bonus)}</span>` : '');
+        return `<tr>
+          <td class="muted">${fmtDate(r.created_at)}</td>
+          <td>${esc(r.birth_date)}</td>
+          <td>${esc(r.birth_time)}</td>
+          <td>${esc(r.calendar)}</td>
+          <td>${esc(r.gender)}</td>
+          <td class="nums">${nums}</td>
+          <td>${esc(r.saju)}${r.advice ? '<br><span class="muted">💡 ' + esc(r.advice) + '</span>' : ''}</td>
+        </tr>`;
+      }).join('');
+    } else {
+      head = ['시각', '질문', '답변'];
+      body = rows.map(r => `<tr>
+        <td class="muted">${fmtDate(r.created_at)}</td>
+        <td>${esc(r.question)}</td>
+        <td>${esc(r.answer)}</td>
+      </tr>`).join('');
+    }
+
+    thead.innerHTML = '<tr>' + head.map(h => `<th>${h}</th>`).join('') + '</tr>';
+    tbody.innerHTML = body;
+    status.style.display = 'none';
+    table.style.display = '';
+  }
+</script>
+</body>
+</html>
