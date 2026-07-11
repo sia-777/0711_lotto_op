@@ -31,13 +31,21 @@ module.exports = async (req, res) => {
     return;
   }
 
-  const type = (req.query && req.query.type) === 'chat' ? 'chat' : 'saju';
+  const q = req.query || {};
+  const type = q.type === 'chat' ? 'chat' : 'saju';
   const table = type === 'chat'
     ? (process.env.SUPABASE_CHAT_TABLE || 'chat_logs')
     : (process.env.SUPABASE_TABLE || 'saju_logs');
 
+  // 날짜 범위 필터 (YYYY-MM-DD). PostgREST 는 같은 컬럼에 여러 조건을 AND 로 처리.
+  const filters = [];
+  if (/^\d{4}-\d{2}-\d{2}$/.test(q.from || '')) filters.push(`created_at=gte.${q.from}T00:00:00`);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(q.to || '')) filters.push(`created_at=lte.${q.to}T23:59:59`);
+  const limit = Math.min(Math.max(parseInt(q.limit, 10) || 500, 1), 1000);
+  const query = ['select=*', 'order=created_at.desc', 'limit=' + limit, ...filters].join('&');
+
   try {
-    const r = await fetch(`${url}/rest/v1/${table}?select=*&order=created_at.desc&limit=200`, {
+    const r = await fetch(`${url}/rest/v1/${table}?${query}`, {
       headers: {
         'apikey': key,
         'Authorization': `Bearer ${key}`

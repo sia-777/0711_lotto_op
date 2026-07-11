@@ -43,12 +43,19 @@
     display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
     box-shadow: var(--card-shadow);
   }
-  .toolbar input {
+  .toolbar input[type="password"] {
     font-family: var(--font); font-size: 14px; color: var(--text-black);
     border: 1px solid var(--input-border); border-radius: 50px;
-    padding: 10px 16px; min-width: 220px; flex: 1;
+    padding: 10px 16px; min-width: 200px; flex: 1;
   }
   .toolbar input:focus { outline: none; border-color: var(--green-accent); }
+  .dates { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-black-soft); }
+  .dates input[type="date"] {
+    font-family: var(--font); font-size: 13px; color: var(--text-black);
+    border: 1px solid var(--input-border); border-radius: 8px; padding: 8px 10px;
+  }
+  .dates input[type="date"]:focus { outline: none; border-color: var(--green-accent); }
+  .btn.ghost { background: var(--white); color: var(--green-accent); border: 1px solid var(--green-accent); }
   .seg { display: flex; border: 1px solid var(--input-border); border-radius: 50px; overflow: hidden; }
   .seg button {
     font-family: var(--font); font-size: 14px; font-weight: 600;
@@ -98,7 +105,13 @@
         <button id="tabSaju" class="active" onclick="setType('saju')">사주 기록</button>
         <button id="tabChat" onclick="setType('chat')">대화 기록</button>
       </div>
+      <div class="dates">
+        <input type="date" id="from" aria-label="시작일">
+        <span>~</span>
+        <input type="date" id="to" aria-label="종료일">
+      </div>
       <button class="btn" id="loadBtn" onclick="load()">불러오기</button>
+      <button class="btn ghost" id="csvBtn" onclick="exportCsv()" disabled>CSV 내보내기</button>
       <span class="count" id="count"></span>
     </div>
 
@@ -110,11 +123,14 @@
 
 <script>
   let type = 'saju';
+  let lastRows = [];
 
   function setType(t) {
     type = t;
     document.getElementById('tabSaju').classList.toggle('active', t === 'saju');
     document.getElementById('tabChat').classList.toggle('active', t === 'chat');
+    lastRows = [];
+    document.getElementById('csvBtn').disabled = true;
     if (document.getElementById('token').value.trim()) load();
   }
 
@@ -135,21 +151,55 @@
     if (!token) { status.style.display = ''; table.style.display = 'none'; status.textContent = '관리자 토큰을 입력하세요.'; return; }
 
     btn.disabled = true;
+    document.getElementById('csvBtn').disabled = true;
     status.style.display = ''; table.style.display = 'none';
     status.textContent = '불러오는 중…';
     document.getElementById('count').textContent = '';
 
+    const from = document.getElementById('from').value;
+    const to = document.getElementById('to').value;
+    const params = new URLSearchParams({ type });
+    if (from) params.set('from', from);
+    if (to) params.set('to', to);
+
     try {
-      const res = await fetch('/api/logs?type=' + type, { headers: { 'x-admin-token': token } });
+      const res = await fetch('/api/logs?' + params.toString(), { headers: { 'x-admin-token': token } });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || '요청 실패');
-      render(data.rows || []);
+      lastRows = data.rows || [];
+      render(lastRows);
+      document.getElementById('csvBtn').disabled = lastRows.length === 0;
     } catch (e) {
       status.style.display = ''; table.style.display = 'none';
       status.textContent = '⚠️ ' + e.message;
     } finally {
       btn.disabled = false;
     }
+  }
+
+  function exportCsv() {
+    if (!lastRows.length) return;
+    const cols = type === 'saju'
+      ? [['created_at', '시각'], ['birth_date', '생년월일'], ['birth_time', '시간'],
+         ['calendar', '양력음력'], ['gender', '성별'], ['numbers', '번호'],
+         ['bonus', '보너스'], ['saju', '사주풀이'], ['advice', '운세']]
+      : [['created_at', '시각'], ['question', '질문'], ['answer', '답변']];
+
+    const cell = v => {
+      if (Array.isArray(v)) v = v.join(' ');
+      const s = String(v == null ? '' : v);
+      return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+    };
+    const header = cols.map(c => cell(c[1])).join(',');
+    const body = lastRows.map(r => cols.map(c => cell(r[c[0]])).join(',')).join('\n');
+    const csv = '﻿' + header + '\n' + body; // BOM: 엑셀 한글 깨짐 방지
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = (type === 'saju' ? 'saju_logs' : 'chat_logs') + '.csv';
+    a.click();
+    URL.revokeObjectURL(a.href);
   }
 
   function render(rows) {
