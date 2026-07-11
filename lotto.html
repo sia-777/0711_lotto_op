@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>로또 추첨기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --starbucks-green: #006241;
+    --green-accent: #00754A;
+    --house-green: #1E3932;
+    --green-uplift: #2b5148;
+    --green-light: #d4e9e2;
+    --gold: #cba258;
+    --gold-light: #dfc49d;
+    --gold-lightest: #faf6ee;
+    --neutral-warm: #f2f0eb;
+    --ceramic: #edebe9;
+    --white: #ffffff;
+    --text-black: rgba(0, 0, 0, 0.87);
+    --text-black-soft: rgba(0, 0, 0, 0.58);
+    --text-white: #ffffff;
+    --text-white-soft: rgba(255, 255, 255, 0.70);
+    --card-radius: 12px;
+    --btn-radius: 50px;
+    --card-shadow: 0 0 0.5px rgba(0,0,0,0.14), 0 1px 1px rgba(0,0,0,0.24);
+    --font: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: var(--font);
+    letter-spacing: -0.16px;
+    background: var(--neutral-warm);
+    color: var(--text-black);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2.4rem 1.6rem;
+  }
+
+  .card {
+    background: var(--white);
+    border-radius: var(--card-radius);
+    box-shadow: var(--card-shadow);
+    max-width: 480px;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  /* House-green feature band */
+  .band {
+    background: var(--house-green);
+    padding: 32px 32px 28px;
+    text-align: center;
+  }
+  .band h1 {
+    color: var(--text-white);
+    font-size: 26px;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+  .band p {
+    color: var(--text-white-soft);
+    font-size: 15px;
+    font-weight: 400;
+    margin-top: 6px;
+  }
+
+  /* Ball machine — the drum */
+  .machine-wrap {
+    background: var(--house-green);
+    padding: 0 32px 28px;
+    display: flex;
+    justify-content: center;
+  }
+  .drum {
+    position: relative;
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 40%, rgba(255,255,255,0.10), rgba(0,0,0,0.25));
+    border: 6px solid rgba(255,255,255,0.14);
+    box-shadow: inset 0 0 24px rgba(0,0,0,0.45);
+    overflow: hidden;
+  }
+  .drum.spinning { animation: shake 0.5s ease-in-out infinite; }
+  @keyframes shake {
+    0%, 100% { transform: rotate(-1.5deg); }
+    50% { transform: rotate(1.5deg); }
+  }
+  /* mini balls bouncing inside */
+  .mini {
+    position: absolute;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+    left: 50%;
+    top: 50%;
+  }
+  .drum.spinning .mini { animation: bounce var(--dur) ease-in-out infinite alternate; }
+  @keyframes bounce {
+    from { transform: translate(var(--x1), var(--y1)); }
+    to   { transform: translate(var(--x2), var(--y2)); }
+  }
+  .chute {
+    position: absolute;
+    bottom: -3px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 14px;
+    background: rgba(0,0,0,0.35);
+    border-radius: 0 0 8px 8px;
+  }
+
+  .body { padding: 24px 32px 28px; text-align: center; }
+
+  .result-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-black-soft);
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+    min-height: 16px;
+  }
+
+  .balls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+    min-height: 78px;
+    margin-bottom: 24px;
+  }
+  .placeholder { font-size: 15px; color: var(--text-black-soft); }
+
+  .ball {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 21px;
+    font-weight: 700;
+    color: var(--text-white);
+    box-shadow: 0 0 6px rgba(0,0,0,0.14), 0 4px 8px rgba(0,0,0,0.10);
+  }
+  .ball.drop { animation: drop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+  @keyframes drop {
+    0%   { transform: translateY(-40px) scale(0.4); opacity: 0; }
+    60%  { transform: translateY(6px) scale(1.08); opacity: 1; }
+    100% { transform: translateY(0) scale(1); opacity: 1; }
+  }
+  .ball.rolling { background: var(--green-uplift) !important; }
+
+  .plus { font-size: 22px; font-weight: 600; color: var(--text-black-soft); }
+  .bonus-wrap { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .bonus-label { font-size: 12px; font-weight: 600; color: var(--gold); letter-spacing: 0.5px; }
+  .ball.bonus.pop { animation: bonusPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+  @keyframes bonusPop {
+    0%   { transform: scale(0) rotate(-180deg); opacity: 0; }
+    100% { transform: scale(1) rotate(0); opacity: 1; }
+  }
+
+  button.draw {
+    font-family: var(--font);
+    background: var(--green-accent);
+    color: var(--white);
+    border: 1px solid var(--green-accent);
+    border-radius: var(--btn-radius);
+    padding: 14px 40px;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  button.draw:active { transform: scale(0.95); }
+  button.draw:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .footer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 18px;
+    font-size: 13px;
+    color: var(--text-black-soft);
+  }
+  .sound-toggle {
+    background: none;
+    border: none;
+    font-family: var(--font);
+    font-size: 13px;
+    color: var(--text-black-soft);
+    cursor: pointer;
+    padding: 4px;
+  }
+  .sound-toggle:hover { color: var(--green-accent); }
+
+  /* Confetti */
+  .confetti {
+    position: fixed;
+    width: 9px;
+    height: 14px;
+    top: -20px;
+    pointer-events: none;
+    z-index: 50;
+    animation: fall linear forwards;
+  }
+  @keyframes fall {
+    to { transform: translateY(105vh) rotate(720deg); opacity: 0; }
+  }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="band">
+      <h1>로또 추첨기</h1>
+      <p>1 – 45 중 6개 + 보너스 볼</p>
+    </div>
+
+    <div class="machine-wrap">
+      <div class="drum" id="drum">
+        <div class="chute"></div>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="result-label" id="resultLabel"></div>
+      <div class="balls" id="balls">
+        <span class="placeholder">레버를 당겨 추첨을 시작하세요</span>
+      </div>
+      <button class="draw" id="drawBtn" onclick="startDraw()">추첨 시작</button>
+      <div class="footer">
+        <span id="drawCount">추첨 0회</span>
+        <button class="sound-toggle" id="soundToggle" onclick="toggleSound()">🔊 소리 켬</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const REVEAL_GAP = 900;      // 공 하나당 간격(ms)
+  let drawCount = 0;
+  let soundOn = true;
+  let drawing = false;
+
+  // ---- 색상: 4단계 그린 체계 매핑 (보너스는 골드) ----
+  function colorFor(n) {
+    if (n <= 9)  return '#2b5148';
+    if (n <= 18) return '#1E3932';
+    if (n <= 27) return '#006241';
+    if (n <= 36) return '#00754A';
+    return '#33795b';
+  }
+
+  // ---- Web Audio 사운드 (외부 파일 없이 즉석 합성) ----
+  let audioCtx = null;
+  function ac() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    return audioCtx;
+  }
+  function beep(freq, dur = 0.12, type = 'sine', vol = 0.18) {
+    if (!soundOn) return;
+    const ctx = ac();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type;
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(vol, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + dur);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(); osc.stop(ctx.currentTime + dur);
+  }
+  function spinSound() {
+    // 낮게 굴러가는 느낌 — 짧은 노이즈 반복
+    if (!soundOn) return;
+    beep(140 + Math.random() * 80, 0.06, 'triangle', 0.06);
+  }
+  function fanfare() {
+    if (!soundOn) return;
+    [523, 659, 784, 1047].forEach((f, i) =>
+      setTimeout(() => beep(f, 0.22, 'sine', 0.16), i * 90));
+  }
+
+  // ---- 드럼 안 미니볼 세팅 ----
+  function fillDrum() {
+    const drum = document.getElementById('drum');
+    drum.querySelectorAll('.mini').forEach(m => m.remove());
+    for (let i = 0; i < 14; i++) {
+      const n = Math.floor(Math.random() * 45) + 1;
+      const m = document.createElement('div');
+      m.className = 'mini';
+      m.textContent = n;
+      m.style.background = colorFor(n);
+      const r = () => (Math.random() * 150 - 75).toFixed(0) + 'px';
+      m.style.setProperty('--x1', r()); m.style.setProperty('--y1', r());
+      m.style.setProperty('--x2', r()); m.style.setProperty('--y2', r());
+      m.style.setProperty('--dur', (0.4 + Math.random() * 0.5).toFixed(2) + 's');
+      m.style.marginLeft = '-13px'; m.style.marginTop = '-13px';
+      drum.appendChild(m);
+    }
+  }
+
+  // ---- 메인 추첨 ----
+  function startDraw() {
+    if (drawing) return;
+    drawing = true;
+    ac().resume && ac().resume();
+
+    const btn = document.getElementById('drawBtn');
+    const container = document.getElementById('balls');
+    const label = document.getElementById('resultLabel');
+    const drum = document.getElementById('drum');
+
+    btn.disabled = true;
+    btn.textContent = '추첨 중…';
+    container.innerHTML = '';
+    label.textContent = '';
+
+    // 번호 추출 (중복 없이 7개)
+    const pool = Array.from({ length: 45 }, (_, i) => i + 1);
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+    const picked = pool.slice(0, 6).sort((a, b) => a - b);
+    const bonus = pool[6];
+
+    // 드럼 스핀 시작
+    fillDrum();
+    drum.classList.add('spinning');
+    const spinTimer = setInterval(spinSound, 120);
+
+    // 잠깐 돌린 뒤 하나씩 배출
+    setTimeout(() => {
+      label.textContent = '당첨 번호';
+      revealSequence(picked, bonus, () => {
+        clearInterval(spinTimer);
+        drum.classList.remove('spinning');
+        drum.querySelectorAll('.mini').forEach(m => m.remove());
+        btn.disabled = false;
+        btn.textContent = '다시 추첨';
+        drawCount++;
+        document.getElementById('drawCount').textContent = '추첨 ' + drawCount + '회';
+        drawing = false;
+      });
+    }, 1400);
+  }
+
+  function revealSequence(picked, bonus, done) {
+    const container = document.getElementById('balls');
+    let idx = 0;
+
+    function next() {
+      if (idx < picked.length) {
+        const n = picked[idx];
+        const ball = document.createElement('div');
+        ball.className = 'ball rolling';
+        ball.textContent = '?';
+        container.appendChild(ball);
+
+        // 숫자 롤링 연출 (긴장감)
+        let ticks = 0;
+        const roll = setInterval(() => {
+          ball.textContent = Math.floor(Math.random() * 45) + 1;
+          beep(600 + Math.random() * 200, 0.03, 'square', 0.05);
+          ticks++;
+          if (ticks > 10) {
+            clearInterval(roll);
+            ball.textContent = n;
+            ball.classList.remove('rolling');
+            ball.classList.add('drop');
+            ball.style.background = colorFor(n);
+            beep(440 + n * 6, 0.14, 'sine', 0.18); // 확정음
+          }
+        }, 55);
+
+        idx++;
+        setTimeout(next, REVEAL_GAP);
+      } else {
+        // 보너스 볼
+        setTimeout(() => {
+          const plus = document.createElement('span');
+          plus.className = 'plus';
+          plus.textContent = '+';
+          container.appendChild(plus);
+
+          const wrap = document.createElement('div');
+          wrap.className = 'bonus-wrap';
+          const ball = document.createElement('div');
+          ball.className = 'ball bonus pop';
+          ball.style.background = 'var(--gold)';
+          ball.textContent = bonus;
+          const lbl = document.createElement('span');
+          lbl.className = 'bonus-label';
+          lbl.textContent = '보너스';
+          wrap.appendChild(ball); wrap.appendChild(lbl);
+          container.appendChild(wrap);
+
+          document.getElementById('resultLabel').textContent = '당첨 번호 + 보너스';
+          fanfare();
+          confetti();
+          done();
+        }, 350);
+      }
+    }
+    next();
+  }
+
+  // ---- 컨페티 ----
+  function confetti() {
+    const colors = ['#00754A', '#006241', '#cba258', '#dfc49d', '#1E3932'];
+    for (let i = 0; i < 80; i++) {
+      const c = document.createElement('div');
+      c.className = 'confetti';
+      c.style.left = Math.random() * 100 + 'vw';
+      c.style.background = colors[Math.floor(Math.random() * colors.length)];
+      c.style.animationDuration = (2 + Math.random() * 1.5) + 's';
+      c.style.animationDelay = (Math.random() * 0.4) + 's';
+      c.style.transform = 'rotate(' + (Math.random() * 360) + 'deg)';
+      document.body.appendChild(c);
+      setTimeout(() => c.remove(), 4200);
+    }
+  }
+
+  // ---- 사운드 토글 ----
+  function toggleSound() {
+    soundOn = !soundOn;
+    document.getElementById('soundToggle').textContent = soundOn ? '🔊 소리 켬' : '🔇 소리 끔';
+    if (soundOn) beep(660, 0.1);
+  }
+</script>
+</body>
+</html>
